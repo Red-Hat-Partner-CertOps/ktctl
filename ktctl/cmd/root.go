@@ -9,7 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
+var levelFlag string
+
 var rootCmd = &cobra.Command{
 	Use:   "ktctl",
 	Short: "command line utility to trace kernel taint",
@@ -44,11 +45,21 @@ var rootCmd = &cobra.Command{
 			fmt.Println("Error changing directory:", err)
 			os.Exit(1)
 		}
+
+		// Perform actions based on log level
+		switch levelFlag {
+		case "error":
+			printError()
+		case "warning":
+			printWarning()
+		case "debug":
+			printDebug()
+		default:
+			fmt.Println("Invalid log level. Available options: error, warning, debug")
+		}
 	 },
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -57,15 +68,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ktctl.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringVarP(&levelFlag, "level", "l", "", "Set log level (error, warning, debug)")
 }
 
 
