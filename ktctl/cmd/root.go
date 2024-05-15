@@ -60,6 +60,55 @@ var rootCmd = &cobra.Command{
 	 },
 }
 
+// Your code to print errors
+func printError() {
+	fmt.Println("---------------------------------------------")
+	fmt.Println("Error found in sosreport:")
+	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
+	if err != nil {
+		fmt.Println("No Error found")
+	}
+	for _, line := range strings.Split(string(dmesg), "\n") {
+		if strings.Contains(line, "Error") || strings.Contains(line, "error") {
+			fmt.Println(line)
+		}
+	}
+	fmt.Println("---------------------------------------------")
+}
+
+// Your code to print warnings
+func printWarning() {
+	fmt.Println("---------------------------------------------")
+	fmt.Println("Warning found in sosreport:")
+	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
+	if err != nil {
+		fmt.Println("No Warning found")
+	}
+	for _, line := range strings.Split(string(dmesg), "\n") {
+		if strings.Contains(line, "WARNING") || strings.Contains(line, "Warning") {
+			fmt.Println(line)
+		}
+	}
+	fmt.Println("---------------------------------------------")
+}
+
+// Your code to print debug information
+func printDebug() {
+	fmt.Println("---------------------------------------------")
+	fmt.Println("Debug information found in sosreport:")
+	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
+	if err != nil {
+		fmt.Println("No Debug info found")
+	}
+	for _, line := range strings.Split(string(dmesg), "\n") {
+		if strings.Contains(line, "DEBUG") || strings.Contains(line, "Debug") {
+			fmt.Println(line)
+		}
+	}
+	fmt.Println("---------------------------------------------")
+}
+
+
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
