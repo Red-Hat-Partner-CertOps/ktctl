@@ -4,9 +4,9 @@
 
 ## Installation
 
-1. *Clone the Repository*: Start by cloning this repository to your local machine:
+1. Start by cloning this repository to your local machine:
 ```sh 
-git clone https://github.com/yourusername/ktctl.git
+git clone git@github.com:Red-Hat-Partner-CertOps/ktctl.git
 ```
 
 2. Move into the cloned repository directory:
@@ -18,11 +18,11 @@ cd ktctl
 ```sh
 sudo make build
 ```
-This command will compile the Go code and create the ktctl binary in the ./bin directory.
+This command will compile the Go code and create the ktctl binary under /usr/local/bin directory
 
 4. Once the binary is built, you can run the tool with the desired arguments:
 ```sh
-ktctl <path of sosreport.tar.xz> -l error
+ktctl <path of sosreport.tar.xz> -l error|warning|debug|tech-preview|all
 ```
 
 Alternatively, you can run make clean to remove the build artifacts after usage:
@@ -39,8 +39,8 @@ ktctl [tarfile] [flags]
 - Flags:
 
     -l or --level: Set log level. Available options are "error", "warning", "debug", and "tech-preview"
-    or 
-    you can use --level all, it will use all above available options in single command.
+    
+    all : you can use --level all, it will use all above available options in single command.
 
 ## Example 
 ```sh
