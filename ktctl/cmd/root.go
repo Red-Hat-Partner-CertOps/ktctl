@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -83,13 +85,20 @@ var rootCmd = &cobra.Command{
 func printKernelTaint() {
 	dmesg, err := os.ReadFile("proc/sys/kernel/tainted")
 	if err != nil {
-		fmt.Println("No taint found !!")
+		log.Fatal(err)
 	}
-	if strings.Contains(string(dmesg), "0") {
-		fmt.Println("No Kernel found to be Tainted")
+
+	dmesgStr := strings.TrimSpace(string(dmesg))
+    dmesgOutput, err := strconv.Atoi(dmesgStr)
+    if err != nil {
+        log.Fatal("Failed to convert dmesg to int:", err)
+    }
+
+	if dmesgOutput > 0 {
+		fmt.Println("Kernel tainted with value:", dmesgOutput)
 	} else {
-		fmt.Printf("Kernel tainted with value: %s \n", string(dmesg))
-	}
+		fmt.Println("No Kernel found to be Tainted")
+	} 
 	fmt.Println()
 }
 
@@ -144,6 +153,7 @@ func printError() {
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "Error") || strings.Contains(line, "error") || strings.Contains(line, "failed") || strings.Contains(line, "FAILED"){
 			fmt.Printf("Error found in sosreport: %s \n", line)
+			fmt.Println()
 			return
 		}
 	}
@@ -159,6 +169,7 @@ func printWarning() {
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "WARNING") || strings.Contains(line, "Warning") {
 			fmt.Printf("Warning found in sosreport: %s \n", line)
+			fmt.Println()
 			return
 		}
 	}
@@ -174,6 +185,7 @@ func printDebug() {
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "DEBUG") || strings.Contains(line, "Debug") || strings.Contains(line, "Firmware Bug") || strings.Contains(line, "BUG"){
 			fmt.Printf("Debug/Firmware info found in sosreport: %s \n", line)
+			fmt.Println()
 			return
 		}
 	}
@@ -190,6 +202,7 @@ func printtechPreview() {
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "TECH PREVIEW") || strings.Contains(line, "Tech Preview") {
 			fmt.Printf("Tech Preview found in sosreport: %s \n",line)
+			fmt.Println()
 			return
 		}
 	}
@@ -205,6 +218,7 @@ func printCPUInfo(){
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "model name") {
 			fmt.Printf("Processor %s \n",line)
+			fmt.Println()
 			return
 		}
 	}
