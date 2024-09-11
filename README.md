@@ -56,6 +56,8 @@ ktctl sosreport.tar.xz --l error
 
 - RHEL Version: Prints the Red Hat Enterprise Linux version extracted from the installed-rpms file.
 
+- Processor name: Prints the Processor Model name from the sosreport.
+
 - Error, Warning, Debug, Tech Preview: Prints specific messages based on the chosen log level.
 
 ## Output 

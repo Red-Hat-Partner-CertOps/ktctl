@@ -19,6 +19,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		tarfile := args[0]
+		extractedDir := tarfile[:len(tarfile)-len(".tar.xz")]
 
 		// Extract the tar.xz file
 		cmdExtract := exec.Command("tar", "-xf", tarfile)
@@ -49,6 +50,7 @@ var rootCmd = &cobra.Command{
 		printKernelTaint()
 		printKernelVersion()
 		printRhelVersion()
+		printCPUInfo()
 
 		// Perform actions based on log level
 		switch levelFlag {
@@ -60,15 +62,25 @@ var rootCmd = &cobra.Command{
 			printDebug()
 		case "tech-preview":
 			printtechPreview()
+		case "all":
+			printError()
+			printWarning()
+			printDebug()
+			printtechPreview()
 		default:
 			fmt.Println("Invalid log level. Available options: error, warning, debug, tech-preview")
+		}
+
+		// Remove the extracted directory
+
+		if err := os.RemoveAll(string(extractedDir)); err != nil {
+			fmt.Println("Error removing extracted directory:", err)
 		}
 	},
 }
 
 // Your code to print kernel taint, kernel version and rhel version
 func printKernelTaint() {
-	fmt.Println("---------------------------------------------")
 	dmesg, err := os.ReadFile("proc/sys/kernel/tainted")
 	if err != nil {
 		fmt.Println("No taint found !!")
@@ -76,14 +88,13 @@ func printKernelTaint() {
 	if strings.Contains(string(dmesg), "0") {
 		fmt.Println("No Kernel found to be Tainted")
 	} else {
-		fmt.Println("Kernel tainted with value:", string(dmesg))
+		fmt.Printf("Kernel tainted with value: %s \n", string(dmesg))
 	}
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print kernel version
 func printKernelVersion() {
-	fmt.Println("---------------------------------------------")
 	uname, err := os.ReadFile("sos_commands/kernel/uname_-a")
 	if err!=nil{
 		fmt.Println("Error reading kernel information")
@@ -96,12 +107,11 @@ func printKernelVersion() {
 	} else {
 		fmt.Println("Kernel version not found")
 	}
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print rhel version
 func printRhelVersion(){
-	fmt.Println("---------------------------------------------")
 	rpms, err := os.ReadFile("installed-rpms")
 	if err != nil {
 		fmt.Println("Error reading installed-rpms file:", err)
@@ -115,34 +125,33 @@ func printRhelVersion(){
 			fields := strings.Fields(line)
 			if len(fields) > 0 {
 				fmt.Println("Red Hat release:",fields[0])
+				fmt.Println()
 				return
 			}
 		}
 	}
 
 	fmt.Println("Release information not found")
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print errors
 func printError() {
-	fmt.Println("---------------------------------------------")
 	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
 	if err != nil {
 		fmt.Println("No Error found")
 	}
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "Error") || strings.Contains(line, "error") || strings.Contains(line, "failed") || strings.Contains(line, "FAILED"){
-			fmt.Println("Error found in sosreport:", line)
+			fmt.Printf("Error found in sosreport: %s \n", line)
+			return
 		}
 	}
-	fmt.Println("Error found in sosreport:")
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print warnings
 func printWarning() {
-	fmt.Println("---------------------------------------------")
 	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
 	if err != nil {
 		fmt.Println("No Warning found")
@@ -153,40 +162,54 @@ func printWarning() {
 			return
 		}
 	}
-	fmt.Println("No Warning found in sosreport")
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print debug information
 func printDebug() {
-	fmt.Println("---------------------------------------------")
 	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
 	if err != nil {
 		fmt.Println("No Debug info found")
 	}
 	for _, line := range strings.Split(string(dmesg), "\n") {
-		if strings.Contains(line, "DEBUG") || strings.Contains(line, "Debug") || strings.Contains(line, "Firmware Bug") {
-			fmt.Println("Debug/Firmware info found in sosreport", line)
+		if strings.Contains(line, "DEBUG") || strings.Contains(line, "Debug") || strings.Contains(line, "Firmware Bug") || strings.Contains(line, "BUG"){
+			fmt.Printf("Debug/Firmware info found in sosreport: %s \n", line)
+			return
 		}
 	}
 	fmt.Println("No Debug/Firmware Bug found in sosreport")
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
 }
 
 // Your code to print tech preview
 func printtechPreview() {
-	fmt.Println("---------------------------------------------")
 	dmesg, err := os.ReadFile("sos_commands/kernel/dmesg")
 	if err != nil {
 		fmt.Println("No Tech Preview found")
 	}
 	for _, line := range strings.Split(string(dmesg), "\n") {
 		if strings.Contains(line, "TECH PREVIEW") || strings.Contains(line, "Tech Preview") {
-			fmt.Println("Tech Preview found in sosreport",line)
+			fmt.Printf("Tech Preview found in sosreport: %s \n",line)
+			return
 		}
 	}
 	fmt.Println("No TechPreview found in sosreport")
-	fmt.Println("---------------------------------------------")
+	fmt.Println()
+}
+
+func printCPUInfo(){
+	dmesg, err := os.ReadFile("proc/cpuinfo")
+	if err != nil {
+		fmt.Println("No Processor found")
+	}
+	for _, line := range strings.Split(string(dmesg), "\n") {
+		if strings.Contains(line, "model name") {
+			fmt.Printf("Processor %s \n",line)
+			return
+		}
+	}
+	fmt.Println("Error fetching CPU Information")
+	fmt.Println()
 }
 
 func Execute() {
@@ -197,5 +220,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&levelFlag, "level", "l", "", "Set log level (error, warning, debug)")
+	rootCmd.Flags().StringVarP(&levelFlag, "level", "l", "", "Set log level (error, warning, debug, tech-preview)")
 }
